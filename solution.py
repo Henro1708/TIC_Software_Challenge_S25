@@ -7,19 +7,19 @@ from ultralytics import YOLO
 # CONSTANTS ---------------------
 DIST_SENSOR = 0.18
 stopped_before = False
-SIZE = 10
+SIZE = 85
 # Variable for controlling which level of the challenge to test -- set to 0 for pure keyboard control
 challengeLevel = 2
 
 # Set to True if you want to run the simulation, False if you want to run on the real robot
-# is_SIM = False
+is_SIM = True
 
 # Set to True if you want to run in debug mode with extra print statements, False otherwise
-# Debug = True
+Debug = True
 
 # Initialization    
 if not "robot" in globals():
-    robot = Robot(IS_SIM=True, DEBUG=False)
+    robot = Robot(IS_SIM=False, DEBUG=False)
     
 control = Control(robot)
 camera = Camera(robot)
@@ -78,7 +78,7 @@ try:
     if challengeLevel == 2:
         while rclpy.ok():
             rclpy.spin_once(robot, timeout_sec=0.1)
-            time.sleep(0.1)
+            time.sleep(0.5)
             # Write your solution here for challenge level 2
             cv2_img = camera.rosImg_to_cv2()
             is_stop_sign, x1, y1, x2, y2 = camera.ML_predict_stop_sign(cv2_img)
@@ -86,7 +86,7 @@ try:
                 print(x1, y1, x2, y2)
             camera.checkImageRelease()
             stop_near = False   # This is used to check if the stop sign is close enough
-            if (x2-x1 > SIZE and y2-y1 > SIZE):
+            if (y2-y1 > SIZE):
                 stop_near = True
                 print("Stop sign detected")
                 
