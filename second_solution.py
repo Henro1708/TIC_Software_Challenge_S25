@@ -9,7 +9,7 @@ DIST_SENSOR = 0.18
 stopped_before = False
 SIZE = 100
 # Variable for controlling which level of the challenge to test -- set to 0 for pure keyboard control
-challengeLevel = 1
+challengeLevel = 3
 
 # Set to True if you want to run the simulation, False if you want to run on the real robot
 # is_SIM = False
@@ -39,7 +39,7 @@ def stage_one_wall_avoidanc():
     # # For example, create funct Hetoo close to a wall ○ X 
     laserScan = lidar.checkScan() 
     closestobs = lidar.detect_obstacle_in_cone(laserScan,1.0,0,20) 
-    print(closestobs) 
+    # print(closestobs) 
     if (closestobs[0]<0.4 and closestobs[0]>0.0): 
         control.stop_keyboard_control() 
         # control.move_backward() 
@@ -95,7 +95,7 @@ try:
     if challengeLevel == 2:
         while rclpy.ok():
             rclpy.spin_once(robot, timeout_sec=0.1)
-            time.sleep(0.1)
+            # time.sleep(0.1)
             # Write your solution here for challenge level 2
             cv2_img = camera.rosImg_to_cv2()
             is_stop_sign, x1, y1, x2, y2 = camera.ML_predict_stop_sign(cv2_img)
@@ -116,13 +116,43 @@ try:
             rclpy.spin_once(robot, timeout_sec=0.1)
             time.sleep(0.1)
             # Write your solution here for challenge level 3 (or 3.5)
+            # Get the latest lidar scan
+            laserScan = lidar.checkScan()
+            
+            # Detect the closest obstacle in a cone in front (center=0, ±30 degrees)
+            closestObs = lidar.detect_obstacle_in_cone(laserScan, 100, 0, 30)
+            # print(closestObs[0])
+            
+
+            # Just exploration
+            current_img = camera.rosImg_to_cv2()
+
+            tag_dict = {6: 90, 7: 90, 5: 135}
+
+            tags = camera.estimate_apriltag_pose(current_img)
+            if tags is not None:
+                for tag in tags:
+                    if tag[1] > 0.3:
+                        control.send_cmd_vel(0.2, 0.0)
+                        print(f"too far away, distance is {tag[1]}")
+                    else:
+                        control.rotate(tag_dict[tag[0]], 1)
+                        print("rotating!")
+            else:
+                if closestObs[0] > 0.5:
+                    control.send_cmd_vel(0.2, 0.0)
+                else:
+                    print("Obstacle too close, retreating")
+                    control.send_cmd_vel(0.0, 0.0)
+                    control.rotate(5, 1)
+
 
             laserScan = lidar.checkScan()
             
             # Detect the closest obstacle in a cone in front (center=0, ±30 degrees)
             closestObs = lidar.detect_obstacle_in_cone(laserScan, 100, 0, 30)
 
-            i0.0 < f closestObs[0] < 0.4
+            # i0.0 < f closestObs[0] < 0.4
 
 
     if challengeLevel == 4:
