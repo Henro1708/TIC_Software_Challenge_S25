@@ -9,7 +9,7 @@ DIST_SENSOR = 0.18
 stopped_before = False
 SIZE = 100
 # Variable for controlling which level of the challenge to test -- set to 0 for pure keyboard control
-challengeLevel = 2
+challengeLevel = 1
 
 # Set to True if you want to run the simulation, False if you want to run on the real robot
 # is_SIM = False
@@ -116,11 +116,21 @@ try:
             time.sleep(0.1)
             # Write your solution here for challenge level 3 (or 3.5)
 
+            laserScan = lidar.checkScan()
+            
+            # Detect the closest obstacle in a cone in front (center=0, ±30 degrees)
+            closestObs = lidar.detect_obstacle_in_cone(laserScan, 100, 0, 30)
+
+            i0.0 < f closestObs[0] < 0.4
+
+
     if challengeLevel == 4:
         while rclpy.ok():
             rclpy.spin_once(robot, timeout_sec=0.1)
             time.sleep(0.1)
             # Write your solution here for challenge level 4
+
+
 
     if challengeLevel == 5:
         while rclpy.ok():
