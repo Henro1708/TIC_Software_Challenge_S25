@@ -64,6 +64,7 @@ try:
     if challengeLevel == 1:
         THRESHOLD = 0.5  # Distance threshold in meters
         retreating = False  # State variable
+        control.start_keyboard_input()
         
         while rclpy.ok():
             rclpy.spin_once(robot, timeout_sec=0.1)
@@ -81,11 +82,11 @@ try:
                     print("Obstacle too close, retreating")
                     control.stop_keyboard_input()  # Disable keyboard input
                     retreating = True
-                control.send_cmd_vel(linear_x=-0.3, angular_z=0.0)  # Move backward
+                control.send_cmd_vel(-0.3, 0.0)  # Move backward
             else:
                 if retreating:
                     print("Safe, resuming keyboard control")
-                    control.send_cmd_vel(linear_x=0.0, angular_z=0.0)  # Stop the robot
+                    control.send_cmd_vel(0.0, 0.0)  # Stop the robot
                     control.start_keyboard_input()  # Re-enable keyboard input
                     retreating = False
 
