@@ -112,11 +112,21 @@ try:
                     
 
     if challengeLevel == 3:
+        FIRST_TAG = 6
+        SECOND_TAG = 7
+        FOURTH_TAG = 5
+        known_tags = [FIRST_TAG, SECOND_TAG, FOURTH_TAG]
+
+        most_recent_tag = None
+        did_i_stop = False
+        currently_tag_rotating = False
+
         while rclpy.ok():
             rclpy.spin_once(robot, timeout_sec=0.1)
             time.sleep(0.1)
             # Write your solution here for challenge level 3 (or 3.5)
             # Get the latest lidar scan
+<<<<<<< HEAD
             laserScan = lidar.checkScan()
             
             # Detect the closest obstacle in a cone in front (center=0, ±30 degrees)
@@ -146,13 +156,52 @@ try:
                     control.send_cmd_vel(0.0, 0.0)
                     control.rotate(5, 1)
 
+=======
+            cv2_img = camera.rosImg_to_cv2()
+            is_stop_sign, x1, y1, x2, y2 = camera.ML_predict_stop_sign(cv2_img)
+>>>>>>> fe16b7a (day 2)
 
             laserScan = lidar.checkScan()
-            
-            # Detect the closest obstacle in a cone in front (center=0, ±30 degrees)
             closestObs = lidar.detect_obstacle_in_cone(laserScan, 100, 0, 30)
+            # print(closestObs[0])
 
+<<<<<<< HEAD
             # i0.0 < f closestObs[0] < 0.4
+=======
+
+            # Just exploration
+            current_img = camera.rosImg_to_cv2()
+            tag_dict = {FIRST_TAG: 90, SECOND_TAG: 90, FOURTH_TAG: 135}
+
+            tags = camera.estimate_apriltag_pose(current_img)
+
+            if tags:
+                print(f'I FOUND A TAG! It is tag #{tags[0]}')
+                for tag in tags:
+                    most_recent_tag = tag[0]
+
+            if is_stop_sign and (x2-x1 > SIZE and y2-y1 > SIZE) and not did_i_stop:
+                control.send_cmd_vel(0.0, 0.0)  # Stop the robot
+                did_i_stop = True
+                time.sleep(3.0)
+            else:
+                if closestObs[0] > 0.6:
+                    control.send_cmd_vel(0.2, 0.0)
+
+                else:
+                    control.send_cmd_vel(0.0, 0.0)
+                    if most_recent_tag is not None:
+                        if most_recent_tag in known_tags:
+                            print("I am rotating because I saw the tag.")
+                            control.rotate(tag_dict[most_recent_tag], 1)
+                            time.sleep(3)
+                        else:
+                            print("TAG NOT SEEN")
+                            #control.rotate(90, 1)
+                    else:
+                        print("I am rotating because im simply too close to the wall. ")
+                        control.rotate(5, 1)
+>>>>>>> fe16b7a (day 2)
 
 
     if challengeLevel == 4:

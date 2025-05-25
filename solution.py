@@ -8,6 +8,11 @@ from ultralytics import YOLO
 DIST_SENSOR = 0.18
 stopped_before = False
 SIZE = 85
+
+FIRST_TAG = 6
+SECOND_TAG = 7
+FOURTH_TAG = 5
+known_tags = [FIRST_TAG, SECOND_TAG, FOURTH_TAG]
 # Variable for controlling which level of the challenge to test -- set to 0 for pure keyboard control
 challengeLevel = 2
 
@@ -19,7 +24,7 @@ Debug = True
 
 # Initialization    
 if not "robot" in globals():
-    robot = Robot(IS_SIM=False, DEBUG=False)
+    robot = Robot(IS_SIM=True, DEBUG=False)
     
 control = Control(robot)
 camera = Camera(robot)
@@ -102,9 +107,38 @@ try:
     if challengeLevel == 3:
         while rclpy.ok():
             rclpy.spin_once(robot, timeout_sec=0.1)
-            time.sleep(0.1)
+            time.sleep(0.5)
             # Write your solution here for challenge level 3 (or 3.5)
+            # COLLISION DETECTION
+            laserScan = lidar.checkScan()
+            closestObs = lidar.detect_obstacle_in_cone(laserScan,1.0,0,1)
+            print(closestObs)
+            if closestObs[0] > 0.0 and closestObs[0] < (0.2 + DIST_SENSOR):
+                control.set_cmd_vel( -0.5, 0.0, 1)
 
+            # COLLECT IMAGE
+            cv2_img = camera.rosImg_to_cv2()
+            is_stop_sign, x1, y1, x2, y2 = camera.ML_predict_stop_sign(cv2_img)
+            poses = camera.estimate_apriltag_pose(cv2_img)
+            print(poses)
+            # PROCESS STOP SIGN
+            camera.checkImageRelease()
+            stop_near = False   # This is used to check if the stop sign is close enough
+            if (y2-y1 > SIZE):
+                stop_near = True
+                print("Stop sign detected")
+            if stop_near:
+                if not stopped_before:   # This is used to check if we stoped for this stop sign in the past
+                    stopped_before = True
+                    control.set_cmd_vel(0,0,5)
+            else:
+                stopped_before = False
+
+            # DEAL WITH THE POSES
+            print(poses)
+            camera.checkImageRelease()
+
+            
     if challengeLevel == 4:
         while rclpy.ok():
             rclpy.spin_once(robot, timeout_sec=0.1)
