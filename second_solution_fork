@@ -8,7 +8,7 @@ from simple_pid import PID
 # CONSTANTS ---------------------
 DIST_SENSOR = 0.18
 stopped_before = False
-SIZE = 65
+SIZE = 85
 # Variable for controlling which level of the challenge to test -- set to 0 for pure keyboard control
 challengeLevel = 3
 
@@ -94,7 +94,7 @@ def stage_one_wall_avoidanc():
 if challengeLevel <= 2:
     control.start_keyboard_control()
     rclpy.spin_once(robot, timeout_sec=0.1)
-    time.sleep(0.5)
+
 
 try:
     if challengeLevel == 0:
@@ -161,10 +161,10 @@ try:
         known_tags = [FIRST_TAG, SECOND_TAG, THIRD_TAG, FOURTH_TAG]
 
         most_recent_tag = FIRST_TAG
-        full_info_tag = (6, 1000, 1000, 1000)
+        full_info_tag = (1000, 1000, 1000, 1000)
         did_i_stop = False
-        angle_dict = {FIRST_TAG: 85, SECOND_TAG: 70, THIRD_TAG: 70, FOURTH_TAG: 90}
-        distance_dict = {FIRST_TAG: 0.4, SECOND_TAG: 0.6, THIRD_TAG: 0.6, FOURTH_TAG: 0.5}
+        angle_dict = {FIRST_TAG: 85, SECOND_TAG: 75, THIRD_TAG: 60, FOURTH_TAG: 120}
+        distance_dict = {FIRST_TAG: 0.4, SECOND_TAG: 0.4, THIRD_TAG: 0.4, FOURTH_TAG: 0.5}
 
         while rclpy.ok():
             camera.checkImageRelease()
@@ -191,19 +191,20 @@ try:
                 for tag in tags:
                     if tag[1] < full_info_tag[1]:
                         full_info_tag = tag
-                    
+
                     most_recent_tag = full_info_tag[0]
                     print(f"tag id {tag[0]} distance {tag[1]} bearing {tag[2]} elevation {tag[3]}")
 
             
 
-            if is_stop_sign and (y2-y1 > SIZE) and not did_i_stop:
-                control.send_cmd_vel(0.0, 0.0)
+            if is_stop_sign and (x2-x1 > SIZE and y2-y1 > SIZE) and not did_i_stop:
+                control.send_cmd_vel(0.0, 0.0)  # Stop the robot
                 did_i_stop = True
+                print("Stopping for traffic control")
                 time.sleep(5.0)
             else:
                 print(closestObs[0])
-                if (closestObs[0] > 0.4):
+                if (closestObs[0] > distance_dict[most_recent_tag]):
                     # l_v, angle = pid_wall_follow_control(closest_to_left[0], closest_to_right[0])
                     control.send_cmd_vel(0.3, 0.0)
                     print('I am moving forward')
@@ -240,7 +241,7 @@ try:
             time.sleep(0.1)
             # Write your solution here for challenge level 5
             
-
+# stopping the keyboard controls immediately
 except KeyboardInterrupt:
     print("Keyboard interrupt received. Stopping...")
 
